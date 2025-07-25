@@ -1,0 +1,13 @@
+"jdbc-oracle": {
+        "type": "stdio",
+        "command": "/workspace/db-ready/quarkus-mcp-servers/jdk17/bin/java",
+        "args": [
+          "-jar",
+          "/workspace/db-ready/quarkus-mcp-servers/jdbc/target/mcp-server-jdbc-universal-999-SNAPSHOT.jar",
+          "--jdbc.url=jdbc:oracle:thin:@10.0.5.2:1521:xe",
+          "--jdbc.user=ORACLEUSR",
+          "--jdbc.password=ORACLEUSR",
+          "--jdbc.readonly=false"
+        ],
+        "cwd": "/workspace/db-ready/quarkus-mcp-servers/jdbc"
+      }

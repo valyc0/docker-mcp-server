@@ -1,0 +1,73 @@
+services:
+  # Container Python per il MCP Server
+  mcp-server:
+    image: python:3.11-slim
+    container_name: mcp-server
+    working_dir: /app
+    volumes:
+      - ./rest-mcp-server:/app
+      - ./quarkus-mcp-servers-java-docker/jdk17:/workspace/db-ready/quarkus-mcp-servers/jdk17
+      - ./quarkus-mcp-servers-java-docker/jdbc:/workspace/db-ready/quarkus-mcp-servers/jdbc
+    ports:
+      - "8000:8000"
+    environment:
+      - MCP_SERVER_HOST=0.0.0.0
+      - MCP_SERVER_PORT=8000
+      - MCP_SERVER_DEBUG=true
+      - LOG_LEVEL=INFO
+      - REQUEST_TIMEOUT=30
+      # Le variabili API vengono caricate dal file .env
+    env_file:
+      - ./rest-mcp-server/.env
+    command: >
+      bash -c "
+        echo 'Installing Python dependencies...' &&
+        pip install --no-cache-dir -r requirements.txt &&
+        echo 'Starting MCP Server...' &&
+        python3 mcp_server.py
+      "
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # Container Node per la UI React
+  chatbot-ui:
+    image: node:22-alpine
+    container_name: chatbot-ui
+    working_dir: /app
+    volumes:
+      - ./chatbot-ui:/app
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+    command: >
+      sh -c "
+        echo 'Installing Node dependencies...' &&
+        npm install &&
+        echo 'Starting React development server...' &&
+        npm start
+      "
+    depends_on:
+      mcp-server:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+    stdin_open: true
+    tty: true
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  node_modules:
