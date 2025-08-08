@@ -1,4 +1,18 @@
 services:
+  # Container Nginx per il reverse proxy
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - mcp-server
+      - chatbot-ui
+    networks:
+      - app-network
+
   # Container Python per il MCP Server
   mcp-server:
     image: python:3.11-slim
@@ -46,7 +60,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_API_URL=/api/v1/query
       - NODE_ENV=development
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true

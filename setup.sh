@@ -233,8 +233,6 @@ if [ -d "quarkus-mcp-servers-java-docker" ]; then
         echo "✓ Maven installed"
     fi
     
-    cd jdbc
-    
     # Use Maven
     mvn clean package -DskipTests
     
